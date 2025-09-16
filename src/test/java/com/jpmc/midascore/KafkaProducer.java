@@ -17,6 +17,17 @@ public class KafkaProducer {
 
     public void send(String transactionLine) {
         String[] transactionData = transactionLine.split(", ");
-        kafkaTemplate.send(topic, new Transaction(Long.parseLong(transactionData[0]), Long.parseLong(transactionData[1]), Float.parseFloat(transactionData[2])));
+        if (transactionData.length == 3) {
+            // Generate a transaction name since it's not provided
+            String transactionName = "txn-" + System.currentTimeMillis();
+            kafkaTemplate.send(topic, new Transaction(
+                    transactionName,
+                    Long.parseLong(transactionData[0].trim()), // senderId
+                    Long.parseLong(transactionData[1].trim()), // recipientId
+                    Float.parseFloat(transactionData[2].trim()) // amount
+            ));
+        } else {
+            System.err.println("Invalid transaction format: " + transactionLine);
+        }
     }
 }

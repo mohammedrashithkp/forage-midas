@@ -1,5 +1,6 @@
 package com.jpmc.midascore;
 
+import com.jpmc.midascore.entity.UserRecord;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-
+import com.jpmc.midascore.repository.UserRepository;
 @SpringBootTest
 @DirtiesContext
 @EmbeddedKafka(partitions = 1, brokerProperties = {"listeners=PLAINTEXT://localhost:9092", "port=9092"})
@@ -23,6 +24,9 @@ public class TaskFourTests {
     @Autowired
     private FileLoader fileLoader;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     void task_four_verifier() throws InterruptedException {
         userPopulator.populate();
@@ -31,7 +35,23 @@ public class TaskFourTests {
             kafkaProducer.send(transactionLine);
         }
         Thread.sleep(2000);
+        // Add at the end of your test method
+        UserRecord wilbur = null;
+        Iterable<UserRecord> allUsers = userRepository.findAll();
+        for (UserRecord user : allUsers) {
+            if ("wilbur".equals(user.getName())) {
+                wilbur = user;
+                break;
+            }
+        }
 
+        if (wilbur != null) {
+            System.out.println("==================================");
+            System.out.println("WILBUR FINAL BALANCE: " + wilbur.getBalance());
+            System.out.println("ROUNDED DOWN: " + Math.floor(wilbur.getBalance()));
+            System.out.println("ANSWER: " + (int) Math.floor(wilbur.getBalance()));
+            System.out.println("==================================");
+        }
 
         logger.info("----------------------------------------------------------");
         logger.info("----------------------------------------------------------");
